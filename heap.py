@@ -1,9 +1,9 @@
 # Pairing heap-based priority queue/min-heap implementation.
 # Copyright (c) 2012 Lars Buitinck.
 
-from collections import namedtuple
+from collections import namedtuple, deque
 from functools import reduce
-
+from llist import dllist
 
 class Heap(object):
     """Min-heap.
@@ -57,7 +57,7 @@ class Heap(object):
 
     def push(self, x):
         """Push element x onto the heap."""
-        self._root = _meld(self._root, _Node(x, []))
+        self._root = _meld(self._root, _Node(x, dllist()))
         self._nelems += 1
 
     @property
@@ -76,18 +76,38 @@ def _meld(l, r):
     """Meld (merge) two pairing heaps, destructively."""
     # We deviate from the usual (persistent) treatment of pairing heaps by
     # using list's destructive, amortized O(1) append rather than a "cons".
-    if l is None:
-        return r
-    elif r is None:
-        return l
-    elif l.key < r.key:
-        l.sub.append(r)
-        return l
-    else:
-        r.sub.append(l)
-        return r
+    if l and r:
+        if l.key < r.key:
+            l.sub.append(r)
+            return l
+        else:
+            r.sub.append(l)
+            return r
+    else:   return r or l
 
 
-def _pair(heaps):
-    """Pair up (recursively meld) a list of heaps."""
+def _mpass(heaps):
+    #meld = _meld
+    """Multipass pairing."""
+    if not heaps:return None
+    while len(heaps) > 1:
+        heaps.appendleft((_meld(heaps.pop(), heaps.pop())))
+    #    pairs.append(heaps.pop())
+    #return reduce(_meld, pairs, None)
+    return heaps.pop()
+
+def _twopass(heaps):
+    """Twopass pairing."""
+    pairs = []
+    while len(heaps) > 1:
+        pairs.append((_meld(heaps.pop(), heaps.pop())))
+    if heaps:
+        pairs.append(heaps.pop())
+    return reduce(_meld, pairs, None)
+
+def _spass(heaps):
+    #***WARNING: running time is enormous*** 
+    """Singlepass pairing. Came from original version of
+    heap. """
     return reduce(_meld, heaps, None)
+_pair = _twopass
