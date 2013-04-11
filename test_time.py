@@ -2,10 +2,9 @@ from heap import Heap
 import random
 import time
 import cProfile
-
-def run():
+data = [random.randint(1, 2*10**4) for i in range(10**4)]
+def run(data):
     heap = Heap()
-    data = [random.randint(1, 2*10**4) for i in range(10**4)]
     sort = []
     start = time.clock()
     for item in data:
@@ -14,10 +13,10 @@ def run():
     while heap:
         sort.append(heap.pop())
     end = time.clock()
-    print mid-start, end-mid
+    print mid-start, end-mid, end-start
     return sort == sorted(data)
-run()
-#cProfile.run('run()')
+run(data)
+#cProfile.run('run(data)')
 def test():
     s = set(range(10**4))
     t1= time.clock()
